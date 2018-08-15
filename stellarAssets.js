@@ -1,8 +1,14 @@
-var StellarSdk = require('stellar-sdk');
+var StellarSdk = require('stellar-sdk'),
+    log = require('tracer').colorConsole();
 
 class StellarAssets {
     constructor(assetsFile) {
-        this.assets = require(assetsFile)
+        try {
+            this.assets = require(assetsFile)
+        } catch (error) {
+            log.warn("Custom asset file not found: " + assetsFile)
+            this.assets = {}
+        }        
     }
 
     static getLive() {
@@ -10,7 +16,7 @@ class StellarAssets {
     }
 
     static getTest() {
-        return new StellarAssets("./config/assets_test.json")
+        return new StellarAssets("./config/assets.json")
     }
 
     get(name) {

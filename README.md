@@ -42,7 +42,7 @@ All account specific commands follows this format:
 `node scli.js trader offer xlm mobi 4.75 100`
 
 # Installation
-*git submodule init .*
+*git submodule init*
 
 *git submodule update --remote*
 

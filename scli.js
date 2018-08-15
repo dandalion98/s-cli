@@ -5,6 +5,7 @@ var stellarPay = require("stellar-pay"),
     StellarSdk = require('stellar-sdk'),
     util = require('util'),
     StellarAssets = require("./stellarAssets").StellarAssets,
+    fs = require('fs'),
     exec = util.promisify(require('child_process').exec);
 
 var stellarServer, WALLET_FILE, assets;
@@ -85,6 +86,7 @@ if (arguments[3]) {
 
 let operationMap = {
     "create": create,
+    "import": importAccount,
     "balance": balance,
     "send": send,    
     "pay": pay,
@@ -153,6 +155,11 @@ async function tx(walletName) {
     }
 }
 
+function saveWallets() {
+    var json = JSON.stringify(wallets, null, 4);
+    fs.writeFileSync(WALLET_FILE, json, 'utf8');
+}
+
 async function create(name) {
     if (wallets[name]) {
         throw new Error("already exist: " + name)
@@ -160,9 +167,27 @@ async function create(name) {
 
     [seed, address] = await stellarServer.createAccount()
     wallets[name] = { "seed": seed, "address": address }
-    var fs = require('fs');
-    var json = JSON.stringify(wallets, null, 4);
-    fs.writeFileSync(WALLET_FILE, json, 'utf8');
+    saveWallets()
+}
+
+async function importAccount(name, seed) {
+    if (wallets[name]) {
+        throw new Error("already exist: " + name)
+    }
+
+    try {
+        var sk = StellarSdk.Keypair.fromSecret(seed);
+        wallets[name] = { "seed": seed, "address": sk.publicKey() }        
+        console.log("imported account: " + sk.publicKey())            
+    } catch (error) {
+        if (!StellarSdk.StrKey.isValidEd25519PublicKey(seed)) {
+            throw new Error("Must provide a valid address or seed for import")
+        }
+        wallets[name] = { "address": seed }
+        console.log("imported account: " + seed)
+    }
+    
+    saveWallets()
 }
 
 async function balance(name) {
