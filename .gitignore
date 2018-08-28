@@ -9,4 +9,4 @@ Thumbs.db
 .buildMeta.json
 node_modules/
 
-config/
+config/*.json

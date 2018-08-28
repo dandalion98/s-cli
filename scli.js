@@ -6,6 +6,7 @@ var stellarPay = require("stellar-pay"),
     util = require('util'),
     StellarAssets = require("./stellarAssets").StellarAssets,
     fs = require('fs'),
+    readline = require('readline'),
     exec = util.promisify(require('child_process').exec);
 
 var stellarServer, WALLET_FILE, assets;
@@ -89,7 +90,7 @@ let operationMap = {
     "import": importAccount,
     "balance": balance,
     "send": send,    
-    "pay": pay,
+    "pay": send,
     "send": send,
     "info": info,
     "tx": tx,
@@ -196,21 +197,43 @@ async function balance(name) {
     console.dir(balance)
 }
 
-async function send(name, destination, amount, assetName) {
+async function send(name, destination, amount, assetName, memo) {
     let asset = assets.get(assetName)
     log.info(`sending ${amount} ${assetName} to ${destination}`)
 
-    let account = stellarServer.getAccount(wallets[name])
-    let transactionId = await account.sendPayment(wallets[destination].address, amount, null, asset)
-    console.log(transactionId)
-    return null
-}
+    let srcWallet = wallets[name]
+    let destWallet = wallets[destination]
+    memo = memo || destWallet.memo
 
-async function pay(name, destination, amount, memo, asset) {
-    log.info(`amount` + amount + " destination" + destination)
-    let account = stellarServer.getAccount(wallets[name])
-    let transactionId = await account.sendPayment(wallets[destination].address, amount, memo, asset)
-    console.log(transactionId)
+    let account = stellarServer.getAccount(srcWallet)
+    
+    console.log("Name:\n" + destination)
+    console.log("\nAddress:\n" + destWallet.address)
+    console.log("\nAmount:\n" + amount + " " + asset.code)
+    console.log("\nMemo:\n" + memo + "\n")
+
+    if (!destWallet.seed) {
+        console.log("(Warning): It appears that you don't own the seed for the destination account")
+    }    
+    console.log("Please confirm send (y):")
+
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        terminal: false
+    });
+
+    rl.on('line', async function (line) {
+        if (line == 'y') {
+            let transactionId = await account.sendPayment(destWallet.address, amount, memo, asset)
+            console.log(transactionId)
+            process.exit()            
+        } else {
+            console.log("Cancelled")
+            process.exit()
+        }
+    })
+
     return null
 }
 

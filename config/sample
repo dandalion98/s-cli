@@ -1,0 +1,16 @@
+INSTRUCTIONS: Input your info and rename to wallets.json or wallets_live.json
+
+{
+	"binance": {
+        "address": "GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A"
+        "memo": "<your-memo>"
+    },
+    "my-account-1": {
+        "seed": "<your_seed>",
+        "address": "<your address>"
+    },
+    "my-account-2": {
+        "seed": "<your_seed>",
+        "address": "<your address>"
+    }
+}
