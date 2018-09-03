@@ -191,8 +191,18 @@ async function importAccount(name, seed) {
     saveWallets()
 }
 
+function getAccount(name) {
+    let w = wallets[name]
+    if (!w) {
+        log.error("No account with name: " + name)
+        process.exit()
+    }
+
+    return stellarServer.getAccount(w)
+}
+
 async function balance(name) {
-    let account = stellarServer.getAccount(wallets[name])
+    let account = getAccount(name)
     let balance = await account.getBalance()
     console.dir(balance)
 }
@@ -225,9 +235,10 @@ async function send(name, destination, amount, assetName, memo) {
 
     rl.on('line', async function (line) {
         if (line == 'y') {
+            rl.close()
             let transactionId = await account.sendPayment(destWallet.address, amount, memo, asset)
             console.log(transactionId)
-            process.exit()            
+            process.exit()
         } else {
             console.log("Cancelled")
             process.exit()
